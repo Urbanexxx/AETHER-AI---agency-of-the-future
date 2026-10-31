@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AETHER AI — агентство будущего</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+tailwind.config = {
+  theme: { extend: {
+    colors: { void: "#050505", graphite: "#111113", neon: { blue: "#00D2FF", violet: "#8B5CF6", pink: "#FF2E97" } },
+    fontFamily: { display: ["Space Grotesk", "sans-serif"], mono: ["JetBrains Mono", "monospace"] },
+    boxShadow: {
+      "neon-blue": "0 0 12px rgba(0,210,255,.45), 0 0 32px rgba(0,210,255,.25)",
+      "neon-blue-lg": "0 0 24px rgba(0,210,255,.55), 0 0 80px rgba(0,210,255,.3)",
+      "neon-violet": "0 0 12px rgba(139,92,246,.5), 0 0 32px rgba(139,92,246,.28)"
+    },
+    keyframes: {
+      shimmer: { "0%": { backgroundPosition: "-200% 0" }, "100%": { backgroundPosition: "200% 0" } },
+      "gradient-pan": { "0%,100%": { backgroundPosition: "0% 50%" }, "50%": { backgroundPosition: "100% 50%" } },
+      "reveal-up": { from: { opacity: 0, transform: "translateY(32px)", filter: "blur(8px)" }, to: { opacity: 1, transform: "none", filter: "blur(0)" } },
+      scan: { "0%": { transform: "translateY(-100%)" }, "100%": { transform: "translateY(100%)" } },
+      blink: { "0%,49%": { opacity: 1 }, "50%,100%": { opacity: 0 } },
+      marquee: { from: { transform: "translateX(0)" }, to: { transform: "translateX(-50%)" } }
+    },
+    animation: {
+      shimmer: "shimmer 2.8s linear infinite", "gradient-pan": "gradient-pan 8s ease infinite",
+      "reveal-up": "reveal-up .9s cubic-bezier(.16,1,.3,1) both", scan: "scan 5s linear infinite",
+      blink: "blink 1s steps(1) infinite", marquee: "marquee 30s linear infinite"
+    }
+  } }
+};
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.3.1/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.3.1/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+:root { color-scheme: dark; --void:#050505; --text:#ededf0; --dim:#8a8a96; --blue:#00d2ff; --violet:#8b5cf6; box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px); }
+html { scroll-padding-top: env(safe-area-inset-top,0px); background: var(--void); }
+body { margin:0; background: var(--void); color: var(--text); font-family: "Space Grotesk", sans-serif; overflow-x:hidden; -webkit-font-smoothing:antialiased; }
+::selection { background: rgba(0,210,255,.28); color:#fff; }
+::-webkit-scrollbar { width:8px } ::-webkit-scrollbar-track { background:#050505 }
+::-webkit-scrollbar-thumb { background:#26262d; border-radius:999px } ::-webkit-scrollbar-thumb:hover { background: var(--blue) }
+@media (hover:hover) and (pointer:fine) { html.hud, html.hud * { cursor:none !important } }
+.glass { border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.03); backdrop-filter:blur(20px); -webkit-backdrop-filter:blur(20px); box-shadow:0 8px 32px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.06); }
+.hud-label { font-family:"JetBrains Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.22em; color:rgba(0,210,255,.8); }
+.text-neon-gradient { background:linear-gradient(135deg,#fff 0%,#00D2FF 50%,#8B5CF6 100%); background-size:200% 200%; -webkit-background-clip:text; background-clip:text; color:transparent; }
+.bg-grid-fade { background-image:linear-gradient(to right,rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.04) 1px,transparent 1px); background-size:64px 64px; -webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 40%,#000 30%,transparent 100%); mask-image:radial-gradient(ellipse 70% 60% at 50% 40%,#000 30%,transparent 100%); }
+.noise { position:fixed; inset:0; z-index:90; pointer-events:none; opacity:.045; mix-blend-mode:overlay; background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>"); }
+.btn-glow { position:relative; isolation:isolate; overflow:hidden; }
+.btn-glow::before { content:""; position:absolute; inset:0; z-index:-1; background:linear-gradient(110deg,transparent 20%,rgba(255,255,255,.18) 50%,transparent 80%); background-size:200% 100%; background-position:-200% 0; transition:background-position .8s; }
+.btn-glow:hover::before { background-position:200% 0; }
+.hud-ring { position:fixed; left:0; top:0; z-index:100; pointer-events:none; width:36px; height:36px; margin:-18px 0 0 -18px; border:1px solid rgba(0,210,255,.7); border-radius:50%; transition:width .35s cubic-bezier(.16,1,.3,1),height .35s cubic-bezier(.16,1,.3,1),margin .35s cubic-bezier(.16,1,.3,1),border-radius .35s,background .35s,border-color .35s; }
+.hud-ring.active { width:64px; height:64px; margin:-32px 0 0 -32px; border-radius:10px; background:rgba(0,210,255,.08); border-color:#00d2ff; box-shadow:0 0 24px rgba(0,210,255,.4); }
+.hud-ring.down { width:24px; height:24px; margin:-12px 0 0 -12px; }
+.hud-dot { position:fixed; left:0; top:0; z-index:101; pointer-events:none; width:6px; height:6px; margin:-3px 0 0 -3px; border-radius:50%; background:#00d2ff; box-shadow:0 0 12px #00d2ff; }
+.hud-ring i { position:absolute; width:8px; height:8px; border:1px solid #00d2ff; opacity:0; transition:opacity .3s; }
+.hud-ring.active i { opacity:1 }
+.hud-ring i:nth-child(1){top:-1px;left:-1px;border-right:0;border-bottom:0}
+.hud-ring i:nth-child(2){top:-1px;right:-1px;border-left:0;border-bottom:0}
+.hud-ring i:nth-child(3){bottom:-1px;left:-1px;border-right:0;border-top:0}
+.hud-ring i:nth-child(4){bottom:-1px;right:-1px;border-left:0;border-top:0}
+.bento{position:relative;overflow:hidden;border-radius:24px;transition:border-color .5s,transform .6s cubic-bezier(.16,1,.3,1)}
+.bento::before{content:"";position:absolute;inset:0;background:radial-gradient(480px circle at var(--mx,50%) var(--my,50%),rgba(0,210,255,.14),transparent 45%);opacity:0;transition:opacity .5s;pointer-events:none}
+.bento::after{content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;background:radial-gradient(320px circle at var(--mx,50%) var(--my,50%),rgba(0,210,255,.7),transparent 45%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;opacity:0;transition:opacity .5s;pointer-events:none}
+.bento:hover::before,.bento:hover::after{opacity:1}
+.bento:hover{transform:translateY(-4px)}
+.bento>*{position:relative;z-index:1}
+.field{font-size:16px !important;width:100%;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.03);padding:14px 16px;color:#fff;outline:none;transition:border-color .3s,box-shadow .3s}
+.field:focus{border-color:#00d2ff;box-shadow:0 0 16px rgba(0,210,255,.25)}
+@media (prefers-reduced-motion:reduce){ *,*::before,*::after{ animation-duration:.01ms !important; transition-duration:.01ms !important } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback } = React;
+const cn = (...a) => a.filter(Boolean).join(" ");
+
+/* ================= hooks ================= */
+function useScramble(text, { delay = 0, speed = 28 } = {}) {
+  const [out, setOut] = useState("");
+  useEffect(() => {
+    const chars = "!<>-_\\/[]{}—=+*^?#01";
+    let frame = 0, raf, last = 0, t0;
+    const total = text.length * 3;
+    const tick = (ts) => {
+      t0 = t0 ?? ts;
+      if (ts - t0 < delay) return (raf = requestAnimationFrame(tick));
+      if (ts - last > speed) {
+        last = ts; frame++;
+        const done = Math.floor(frame / 3);
+        setOut(text.split("").map((c, i) => c === " " ? " " : i < done ? c : chars[Math.floor(Math.random() * chars.length)]).join(""));
+      }
+      if (frame <= total) raf = requestAnimationFrame(tick); else setOut(text);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [text, delay, speed]);
+  return out;
+}
+
+/* ================= ui/scramble-text ================= */
+function ScrambleText({ text, className, delay = 0 }) {
+  const out = useScramble(text, { delay });
+  return <span className={className} aria-label={text}>{out || "\u00A0"}</span>;
+}
+
+/* ================= ui/magnetic ================= */
+function Magnetic({ children, strength = 0.35, className }) {
+  const ref = useRef(null);
+  const move = (e) => {
+    const el = ref.current, r = el.getBoundingClientRect();
+    const x = (e.clientX - (r.left + r.width / 2)) * strength;
+    const y = (e.clientY - (r.top + r.height / 2)) * strength;
+    el.style.transform = `translate(${x}px, ${y}px)`;
+  };
+  const leave = () => { ref.current.style.transform = "translate(0,0)"; };
+  return (
+    <div ref={ref} onMouseMove={move} onMouseLeave={leave} data-magnetic
+      className={cn("inline-block transition-transform duration-300 ease-out", className)}>
+      {children}
+    </div>
+  );
+}
+
+/* ================= ui/glow-button ================= */
+function GlowButton({ children, variant = "primary", className, ...p }) {
+  const styles = variant === "primary"
+    ? "bg-neon-blue text-void shadow-neon-blue hover:shadow-neon-blue-lg font-semibold"
+    : "glass text-white hover:border-neon-blue/40 hover:shadow-neon-violet";
+  return (
+    <button {...p} className={cn("btn-glow rounded-full px-7 py-3.5 text-sm tracking-wide transition-shadow duration-500", styles, className)}>
+      {children}
+    </button>
+  );
+}
+
+/* ================= ui/hud-cursor ================= */
+function HudCursor() {
+  const ring = useRef(null), dot = useRef(null);
+  useEffect(() => {
+    if (!window.matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+    document.documentElement.classList.add("hud");
+    const pos = { x: innerWidth / 2, y: innerHeight / 2 }, tgt = { ...pos };
+    let raf;
+    const onMove = (e) => {
+      tgt.x = e.clientX; tgt.y = e.clientY;
+      dot.current.style.transform = `translate(${tgt.x}px,${tgt.y}px)`;
+      const hit = e.target.closest && e.target.closest("a,button,[data-magnetic],[data-hover]");
+      ring.current.classList.toggle("active", !!hit);
+    };
+    const down = () => ring.current.classList.add("down");
+    const up = () => ring.current.classList.remove("down");
+    const loop = () => {
+      pos.x += (tgt.x - pos.x) * 0.16; pos.y += (tgt.y - pos.y) * 0.16;
+      ring.current.style.transform = `translate(${pos.x}px,${pos.y}px)`;
+      raf = requestAnimationFrame(loop);
+    };
+    addEventListener("mousemove", onMove); addEventListener("mousedown", down); addEventListener("mouseup", up);
+    raf = requestAnimationFrame(loop);
+    return () => {
+      cancelAnimationFrame(raf); document.documentElement.classList.remove("hud");
+      removeEventListener("mousemove", onMove); removeEventListener("mousedown", down); removeEventListener("mouseup", up);
+    };
+  }, []);
+  return (<>
+    <div ref={ring} className="hud-ring"><i/><i/><i/><i/></div>
+    <div ref={dot} className="hud-dot" />
+  </>);
+}
+
+/* ================= sections/hero/hero-loader ================= */
+function HeroLoader() {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center">
+      <div className="h-40 w-40 rounded-full border border-neon-blue/30 bg-[length:200%_100%] animate-shimmer"
+        style={{ backgroundImage: "linear-gradient(110deg,transparent 20%,rgba(0,210,255,.25) 50%,transparent 80%)" }} />
+    </div>
+  );
+}
+
+/* ================= sections/hero/hero-sphere (Three.js) ================= */
+function HeroSphere({ onReady }) {
+  const mount = useRef(null);
+  useEffect(() => {
+    const el = mount.current;
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+    camera.position.z = 6.2;
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "high-performance" });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    el.appendChild(renderer.domElement);
+
+    const group = new THREE.Group(); scene.add(group);
+    const core = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.5, 4),
+      new THREE.MeshBasicMaterial({ color: 0x00d2ff, wireframe: true, transparent: true, opacity: 0.35 })
+    );
+    const inner = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(1.1, 1),
+      new THREE.MeshBasicMaterial({ color: 0x8b5cf6, wireframe: true, transparent: true, opacity: 0.55 })
+    );
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(0.9, 32, 32),
+      new THREE.MeshBasicMaterial({ color: 0x00d2ff, transparent: true, opacity: 0.08 })
+    );
+    const ring = new THREE.Mesh(
+      new THREE.TorusGeometry(2.25, 0.006, 8, 160),
+      new THREE.MeshBasicMaterial({ color: 0x00d2ff, transparent: true, opacity: 0.7 })
+    );
+    ring.rotation.x = Math.PI / 2.4;
+    const ring2 = ring.clone(); ring2.scale.setScalar(1.25); ring2.rotation.set(Math.PI / 1.8, 0.4, 0);
+    ring2.material = new THREE.MeshBasicMaterial({ color: 0x8b5cf6, transparent: true, opacity: 0.5 });
+    group.add(core, inner, glow, ring, ring2);
+
+    const N = 900, pos = new Float32Array(N * 3);
+    for (let i = 0; i < N; i++) {
+      const r = 2.6 + Math.random() * 2.4, th = Math.random() * Math.PI * 2, ph = Math.acos(2 * Math.random() - 1);
+      pos.set([r * Math.sin(ph) * Math.cos(th), r * Math.sin(ph) * Math.sin(th), r * Math.cos(ph)], i * 3);
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    const stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0x9fe8ff, size: 0.018, transparent: true, opacity: 0.8 }));
+    scene.add(stars);
+
+    const resize = () => {
+      const w = el.clientWidth, h = el.clientHeight;
+      renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix();
+    };
+    resize();
+    const ro = new ResizeObserver(resize); ro.observe(el);
+
+    const m = { x: 0, y: 0, tx: 0, ty: 0 };
+    const onMove = (e) => { m.tx = (e.clientX / innerWidth - 0.5) * 2; m.ty = (e.clientY / innerHeight - 0.5) * 2; };
+    addEventListener("pointermove", onMove);
+
+    let visible = true;
+    const io = new IntersectionObserver(([en]) => (visible = en.isIntersecting)); io.observe(el);
+
+    const clock = new THREE.Clock(); let raf;
+    const loop = () => {
+      raf = requestAnimationFrame(loop);
+      if (!visible) return;
+      const t = clock.getElapsedTime();
+      m.x += (m.tx - m.x) * 0.05; m.y += (m.ty - m.y) * 0.05;
+      core.rotation.y = t * 0.12; core.rotation.x = t * 0.05;
+      inner.rotation.y = -t * 0.2; inner.rotation.z = t * 0.08;
+      ring.rotation.z = t * 0.25; ring2.rotation.z = -t * 0.18;
+      stars.rotation.y = t * 0.02;
+      const s = 1 + Math.sin(t * 1.6) * 0.04; glow.scale.setScalar(s);
+      group.rotation.y = m.x * 0.5; group.rotation.x = m.y * 0.3;
+      group.position.y = Math.sin(t * 0.8) * 0.08;
+      renderer.render(scene, camera);
+    };
+    loop(); onReady && onReady();
+
+    return () => {
+      cancelAnimationFrame(raf); ro.disconnect(); io.disconnect(); removeEventListener("pointermove", onMove);
+      scene.traverse((o) => { o.geometry && o.geometry.dispose(); o.material && o.material.dispose(); });
+      renderer.dispose(); el.removeChild(renderer.domElement);
+    };
+  }, []);
+  return <div ref={mount} className="absolute inset-0" />;
+}
+
+/* ================= sections/hero/hero ================= */
+function Nav({ tab, setTab }) {
+  const links = NAV;
+  return (
+    <header className="fixed inset-x-0 top-0 z-50 flex justify-center px-4" style={{ paddingTop: "calc(env(safe-area-inset-top,0px) + 16px)" }}>
+      <nav className="glass flex w-full max-w-3xl items-center justify-between rounded-full py-2 pl-6 pr-2">
+        <a href="#top" onClick={(e) => { e.preventDefault(); setTab("home"); }} className="font-display text-sm font-bold tracking-[0.3em]">AETHER<span className="text-neon-blue">.AI</span></a>
+        <ul className="hidden items-center gap-7 md:flex">
+          {links.map((l) => (
+            <li key={l[0]}><a href="#top" onClick={(e) => { e.preventDefault(); setTab(l[0]); }} className={cn("text-sm transition-colors hover:text-white", tab === l[0] ? "text-neon-blue" : "text-[#8a8a96]")}>{l[1]}</a></li>
+          ))}
+        </ul>
+        <Magnetic strength={0.25}><GlowButton onClick={() => setTab("brief")} className="!px-5 !py-2.5">Бриф</GlowButton></Magnetic>
+      </nav>
+    </header>
+  );
+}
+
+function Telemetry({ className, label, value }) {
+  return (
+    <div className={cn("glass hidden rounded-2xl px-4 py-3 md:block", className)} data-hover>
+      <div className="hud-label">{label}</div>
+      <div className="mt-1 font-mono text-lg text-white">{value}</div>
+    </div>
+  );
+}
+
+function Hero({ setTab }) {
+  const tag = useScramble("// СИСТЕМА ОНЛАЙН — ВЕРСИЯ 4.2", { delay: 300 });
+  return (
+    <section id="top" className="relative flex min-h-screen items-center overflow-hidden">
+      <div className="bg-grid-fade pointer-events-none absolute inset-0" />
+      <div className="pointer-events-none absolute inset-0" style={{ background: "radial-gradient(60% 50% at 20% 20%,rgba(0,210,255,.16),transparent 70%),radial-gradient(50% 50% at 80% 30%,rgba(139,92,246,.18),transparent 70%),radial-gradient(60% 60% at 50% 90%,rgba(255,46,151,.08),transparent 70%)" }} />
+
+
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-40 animate-scan bg-gradient-to-b from-transparent via-neon-blue/[0.04] to-transparent" />
+
+      <div className="relative z-10 mx-auto w-full max-w-[1320px] px-5 sm:px-8 lg:px-12">
+        <div className="max-w-4xl">
+          <p className="hud-label mb-6 flex items-center gap-3 animate-reveal-up">
+            <span className="h-2 w-2 rounded-full bg-neon-blue shadow-neon-blue" />
+            <span>{tag}</span><span className="animate-blink">_</span>
+          </p>
+          <h1 className="font-display font-bold animate-reveal-up" style={{ fontSize: "clamp(2.6rem,9vw,8rem)", lineHeight: 0.95, letterSpacing: "-0.04em", animationDelay: ".15s" }}>
+            Интеллект,<br />
+            <span className="text-neon-gradient animate-gradient-pan">который строит</span><br />
+            будущее.
+          </h1>
+          <p className="mt-8 max-w-xl text-lg leading-relaxed text-[#8a8a96] animate-reveal-up" style={{ animationDelay: ".35s" }}>
+            AETHER AI — агентство автономных ИИ-агентов. Мы проектируем системы, которые думают, действуют и масштабируют ваш бизнес без пауз.
+          </p>
+          <div className="mt-10 flex flex-wrap items-center gap-4 animate-reveal-up" style={{ animationDelay: ".5s" }}>
+            <Magnetic><GlowButton onClick={() => setTab("brief")}>Запустить проект →</GlowButton></Magnetic>
+            <Magnetic><GlowButton variant="ghost" onClick={() => setTab("cases")}>Смотреть кейсы</GlowButton></Magnetic>
+          </div>
+        </div>
+
+        <Telemetry className="absolute right-12 top-[28%]" label="Агентов в работе" value="1 284" />
+        <Telemetry className="absolute bottom-[22%] right-[22%]" label="Аптайм" value="99.98%" />
+      </div>
+
+      <div className="absolute inset-x-0 bottom-0 overflow-hidden border-t border-white/[0.08] bg-void/60 pb-20 pt-4 backdrop-blur-md md:pb-4">
+        <div className="flex w-max animate-marquee gap-12 font-mono text-xs uppercase tracking-[0.3em] text-[#8a8a96]">
+          {[...Array(2)].map((_, k) => (
+            <div key={k} className="flex gap-12">
+              {["Автономные агенты", "RAG-системы", "Мультимодальные модели", "AI-оркестрация", "Голосовые ассистенты", "Computer Vision"].map((t) => (
+                <span key={t + k} className="flex items-center gap-12">{t}<span className="text-neon-blue">◆</span></span>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ================= shared ================= */
+const NAV = [["services", "Услуги"], ["cases", "Кейсы"], ["metrics", "Метрики"], ["dashboard", "Кабинет"]];
+
+function PageHead({ label, title, sub }) {
+  return (
+    <div className="mb-12 max-w-2xl animate-reveal-up">
+      <p className="hud-label mb-4">{label}</p>
+      <h2 className="font-display text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl">{title}</h2>
+      <p className="mt-5 text-lg leading-relaxed text-[#8a8a96]">{sub}</p>
+    </div>
+  );
+}
+
+function BentoCard({ className, children, delay = 0 }) {
+  const ref = useRef(null);
+  const move = (e) => {
+    const r = ref.current.getBoundingClientRect();
+    ref.current.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    ref.current.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+  return (
+    <div ref={ref} onMouseMove={move} data-hover style={{ animationDelay: `${delay}s` }}
+      className={cn("bento glass animate-reveal-up p-7", className)}>{children}</div>
+  );
+}
+
+function Count({ to, prefix = "", suffix = "" }) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    let raf, t0;
+    const f = (t) => {
+      t0 = t0 ?? t;
+      const p = Math.min((t - t0) / 1600, 1);
+      setV(Math.round(to * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) raf = requestAnimationFrame(f);
+    };
+    raf = requestAnimationFrame(f);
+    return () => cancelAnimationFrame(raf);
+  }, [to]);
+  return <>{prefix}{v.toLocaleString("ru-RU")}{suffix}</>;
+}
+
+/* ================= sections/services ================= */
+function ServiceIcon({ children }) {
+  return <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl border border-neon-blue/30 bg-neon-blue/10 text-xl text-neon-blue shadow-neon-blue/20">{children}</div>;
+}
+
+function Services() {
+  const lines = ["> init llm.pipeline --secure", "> embed(corpus, 3072)", "> route(intent) → agent#07", "> latency 38ms ✓"];
+  return (
+    <>
+      <PageHead label="// 01 — Услуги" title="Что мы строим" sub="Пять направлений, из которых собирается автономная ИИ-инфраструктура вашего бизнеса." />
+      <div className="grid auto-rows-[minmax(220px,auto)] gap-4 md:grid-cols-4">
+        <BentoCard className="md:col-span-2 md:row-span-2" delay={0.05}>
+          <ServiceIcon>◈</ServiceIcon>
+          <h3 className="font-display text-3xl font-bold">Интеграция LLM</h3>
+          <p className="mt-3 max-w-md text-[#8a8a96]">Подключаем языковые модели к вашим данным и процессам: безопасно, с контролем затрат и качества ответов.</p>
+          <div className="mt-8 rounded-2xl border border-white/[0.08] bg-black/50 p-5 font-mono text-xs leading-7 text-neon-blue/90">
+            {lines.map((l, i) => <div key={l}><ScrambleText text={l} delay={600 + i * 700} /></div>)}
+            <span className="animate-blink">▍</span>
+          </div>
+        </BentoCard>
+        <BentoCard className="md:col-span-2" delay={0.12}>
+          <ServiceIcon>⬡</ServiceIcon>
+          <h3 className="font-display text-2xl font-bold">Автономные агенты</h3>
+          <p className="mt-2 text-[#8a8a96]">Агенты, которые планируют, вызывают инструменты и доводят задачу до результата без человека в цикле.</p>
+        </BentoCard>
+        <BentoCard delay={0.19}>
+          <ServiceIcon>✦</ServiceIcon>
+          <h3 className="font-display text-xl font-bold">Нейро-дизайн</h3>
+          <p className="mt-2 text-sm text-[#8a8a96]">Генеративные интерфейсы и бренд-системы.</p>
+        </BentoCard>
+        <BentoCard delay={0.26}>
+          <ServiceIcon>◉</ServiceIcon>
+          <h3 className="font-display text-xl font-bold">Computer Vision</h3>
+          <p className="mt-2 text-sm text-[#8a8a96]">Распознавание и контроль качества в реальном времени.</p>
+        </BentoCard>
+        <BentoCard className="md:col-span-4" delay={0.33}>
+          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+            <div>
+              <ServiceIcon>⌬</ServiceIcon>
+              <h3 className="font-display text-2xl font-bold">RAG и корпоративная память</h3>
+              <p className="mt-2 max-w-xl text-[#8a8a96]">Векторный поиск по миллионам документов с цитированием источников и разграничением доступа.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {["pgvector", "Hybrid search", "Rerank", "RBAC"].map((t) => <span key={t} className="hud-label rounded-full border border-neon-blue/20 px-3 py-1.5">{t}</span>)}
+            </div>
+          </div>
+        </BentoCard>
+      </div>
+    </>
+  );
+}
+
+/* ================= sections/cases ================= */
+const CASES = [
+  { id: 1, name: "NEXUS BANK", title: "Агент-аналитик рисков", metric: "−63% времени на KYC", a: "#00D2FF", b: "#8B5CF6" },
+  { id: 2, name: "ORBITA LOGISTICS", title: "Автономная диспетчеризация", metric: "+41% скорость доставки", a: "#8B5CF6", b: "#FF2E97" },
+  { id: 3, name: "HELIX BIOTECH", title: "RAG по 2 млн исследований", metric: "×12 быстрее поиск", a: "#B6FF3B", b: "#00D2FF" },
+  { id: 4, name: "VOLTA MOTORS", title: "Нейро-дизайн салона", metric: "+28% конверсия", a: "#FF2E97", b: "#00D2FF" }
+];
+
+function CaseArt({ a, b, id }) {
+  const cx = 200 + ((id * 37) % 80) - 40;
+  return (
+    <svg viewBox="0 0 400 300" className="h-full w-full" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <linearGradient id={`g${id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient>
+        <radialGradient id={`r${id}`}><stop offset="0" stopColor="#fff" stopOpacity=".9" /><stop offset="1" stopColor={a} stopOpacity="0" /></radialGradient>
+      </defs>
+      <rect width="400" height="300" fill="#0a0a0c" />
+      {[...Array(14)].map((_, i) => <line key={i} x1={i * 30} y1="0" x2={i * 30 + id * 20} y2="300" stroke={b} strokeOpacity=".14" />)}
+      {[...Array(7)].map((_, i) => <circle key={i} cx={cx} cy="150" r={30 + i * 28} fill="none" stroke={`url(#g${id})`} strokeWidth="1" opacity={1 - i * 0.12} />)}
+      <circle cx={cx} cy="150" r="52" fill={`url(#r${id})`} opacity=".7" />
+    </svg>
+  );
+}
+
+function CaseCard({ c, i, onOpen }) {
+  const ref = useRef(null);
+  const move = (e) => {
+    const r = ref.current.getBoundingClientRect();
+    ref.current.style.setProperty("--px", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+    ref.current.style.setProperty("--py", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+  };
+  const leave = () => { ref.current.style.setProperty("--px", 0); ref.current.style.setProperty("--py", 0); };
+  return (
+    <article ref={ref} onMouseMove={move} onMouseLeave={leave} onClick={() => onOpen(c)} onKeyDown={(e) => e.key === "Enter" && onOpen(c)} tabIndex={0} role="button" data-hover style={{ animationDelay: `${i * 0.1}s` }}
+      className={cn("group glass relative aspect-[4/3] animate-reveal-up overflow-hidden rounded-3xl transition-shadow duration-500 hover:border-neon-blue/40 hover:shadow-neon-blue", i % 2 && "md:mt-14")}>
+      <div className="absolute -inset-6 transition-transform duration-300 ease-out"
+        style={{ transform: "translate3d(calc(var(--px,0) * -26px), calc(var(--py,0) * -26px), 0)" }}>
+        <div className="h-full w-full scale-100 transition-transform duration-[900ms] ease-out group-hover:scale-110"><CaseArt {...c} /></div>
+      </div>
+      <div className="absolute inset-0 bg-gradient-to-t from-void via-void/30 to-transparent" />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-neon-blue to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
+      <div className="absolute inset-x-0 bottom-0 p-6">
+        <div className="hud-label mb-2">{c.name}</div>
+        <h3 className="font-display text-2xl font-bold">{c.title}</h3>
+        <div className="mt-3 flex items-center justify-between">
+          <span className="font-mono text-sm text-white">{c.metric}</span>
+          <span className="translate-x-2 text-neon-blue opacity-0 transition-all duration-500 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+function Cases() {
+  const [open, setOpen] = useState(null);
+  return (
+    <>
+      <PageHead label="// 02 — Кейсы" title="Проекты в орбите" sub="Наведите курсор: обложки реагируют на движение мыши, а глубина слоёв создаёт параллакс." />
+      <div className="grid gap-6 md:grid-cols-2">{CASES.map((c, i) => <CaseCard key={c.id} c={c} i={i} onOpen={setOpen} />)}</div>
+      <CaseModal c={open} onClose={() => setOpen(null)} />
+    </>
+  );
+}
+
+/* ================= sections/stats ================= */
+function Metrics() {
+  const items = [
+    { to: 1284, label: "Агентов в работе" }, { to: 48, label: "Запущенных проектов", suffix: "+" },
+    { to: 63, label: "Экономия времени", prefix: "−", suffix: "%" }, { to: 12, label: "Млн запросов в сутки" }
+  ];
+  return (
+    <>
+      <PageHead label="// 03 — Метрики" title="Цифры, а не обещания" sub="Живая статистика платформы AETHER за последние 12 месяцев." />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((s, i) => (
+          <BentoCard key={s.label} delay={i * 0.08}>
+            <div className="text-neon-gradient font-display text-6xl font-bold"><Count to={s.to} prefix={s.prefix} suffix={s.suffix} /></div>
+            <div className="hud-label mt-4">{s.label}</div>
+          </BentoCard>
+        ))}
+      </div>
+    </>
+  );
+}
+
+/* ================= dashboard ================= */
+function Dashboard() {
+  const [on, setOn] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setOn(true), 100); return () => clearTimeout(t); }, []);
+  const bars = [38, 52, 44, 68, 59, 81, 73, 90, 66, 84, 95, 78];
+  const agents = [["Агент-аналитик", "Работает"], ["Диспетчер", "Работает"], ["RAG-поиск", "Обучение"]];
+  return (
+    <>
+      <PageHead label="// 04 — Кабинет" title="Центр управления" sub="Демо-панель: нагрузка агентов и их текущий статус." />
+      <div className="grid gap-4 md:grid-cols-3">
+        <BentoCard className="md:col-span-2">
+          <div className="hud-label mb-6">Запросы / 12 месяцев</div>
+          <div className="flex h-56 items-end gap-2">
+            {bars.map((h, i) => (
+              <div key={i} className="flex-1 rounded-t-md bg-gradient-to-t from-neon-violet/40 to-neon-blue transition-all duration-[1200ms] ease-out"
+                style={{ height: on ? `${h}%` : "2%", transitionDelay: `${i * 60}ms` }} />
+            ))}
+          </div>
+        </BentoCard>
+        <BentoCard delay={0.1}>
+          <div className="hud-label mb-6">Агенты</div>
+          <ul className="space-y-4">
+            {agents.map(([n, s]) => (
+              <li key={n} className="flex items-center justify-between">
+                <span>{n}</span>
+                <span className="flex items-center gap-2 font-mono text-xs text-[#8a8a96]">
+                  <span className={cn("h-2 w-2 rounded-full", s === "Работает" ? "bg-neon-blue shadow-neon-blue" : "bg-neon-violet shadow-neon-violet")} />{s}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </BentoCard>
+      </div>
+    </>
+  );
+}
+
+/* ================= case modal ================= */
+const DETAILS = {
+  1: { task: "Вручную проверять клиентов (KYC) банку приходилось по 3 дня. Нужен агент, который собирает данные, оценивает риски и объясняет своё решение аудитору.", stack: ["AI", "Python", "Next.js", "pgvector"], result: "Агент разбирает заявку за минуты, прикладывает к каждому выводу источники и передаёт человеку только спорные случаи.", stats: [["−63%", "время проверки"], ["94%", "точность"], ["3 мес", "до запуска"]] },
+  2: { task: "Диспетчеры не справлялись с перераспределением 20 000 доставок в сутки при изменении погоды и пробок.", stack: ["AI Agents", "Python", "Next.js", "Supabase"], result: "Мультиагентная система перестраивает маршруты в режиме реального времени и сама согласует изменения с перевозчиками.", stats: [["+41%", "скорость"], ["−19%", "топливо"], ["24/7", "автономность"]] },
+  3: { task: "Учёным нужно было искать нужные данные среди 2 млн исследований и внутренних отчётов в разных форматах.", stack: ["RAG", "Python", "pgvector", "Next.js"], result: "Гибридный поиск с цитированием первоисточников даёт ответ на профессиональный вопрос за секунды.", stats: [["×12", "быстрее поиск"], ["2 млн", "документов"], ["97%", "релевантность"]] },
+  4: { task: "Бренду требовался конфигуратор салона, который подстраивается под вкус клиента и показывает результат мгновенно.", stack: ["Generative AI", "Three.js", "Next.js", "Python"], result: "Генеративный движок предлагает материалы и цвета, а 3D-превью обновляется в реальном времени.", stats: [["+28%", "конверсия"], ["×3", "вовлечённость"], ["60 fps", "3D-превью"]] }
+};
+
+function CaseModal({ c, onClose }) {
+  const [show, setShow] = useState(false);
+  useEffect(() => {
+    if (!c) return;
+    const t = setTimeout(() => setShow(true), 20);
+    const key = (e) => e.key === "Escape" && onClose();
+    addEventListener("keydown", key);
+    document.body.style.overflow = "hidden";
+    return () => { clearTimeout(t); setShow(false); removeEventListener("keydown", key); document.body.style.overflow = ""; };
+  }, [c]);
+  if (!c) return null;
+  const d = DETAILS[c.id];
+  return ReactDOM.createPortal(
+    <div role="dialog" aria-modal="true" onClick={onClose}
+      className={cn("fixed inset-0 z-[80] flex items-end justify-center p-3 transition-opacity duration-500 sm:items-center sm:p-6", show ? "opacity-100" : "opacity-0")}>
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      <div onClick={(e) => e.stopPropagation()} style={{ background: "rgba(17,17,19,.82)" }}
+        className={cn("glass relative max-h-full w-full max-w-3xl overflow-y-auto rounded-3xl shadow-neon-blue transition-all duration-500 ease-out", show ? "translate-y-0 scale-100" : "translate-y-8 scale-95")}>
+        <button onClick={onClose} aria-label="Закрыть" className="glass absolute right-4 top-4 z-10 flex h-10 w-10 items-center justify-center rounded-full text-lg hover:text-neon-blue">✕</button>
+        <div className="relative h-48 overflow-hidden sm:h-56">
+          <div className="absolute inset-0 scale-110"><CaseArt {...c} /></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#111113] to-transparent" />
+          <div className="absolute bottom-5 left-7 right-7">
+            <div className="hud-label mb-2">{c.name}</div>
+            <h3 className="font-display text-3xl font-bold sm:text-4xl">{c.title}</h3>
+          </div>
+        </div>
+        <div className="space-y-8 p-7">
+          <div><div className="hud-label mb-3">// Задача</div><p className="leading-relaxed text-[#c4c4cc]">{d.task}</p></div>
+          <div>
+            <div className="hud-label mb-3">// Стек технологий</div>
+            <div className="flex flex-wrap gap-2">{d.stack.map((s) => <span key={s} className="rounded-full border border-neon-blue/30 bg-neon-blue/10 px-4 py-1.5 font-mono text-xs text-neon-blue">{s}</span>)}</div>
+          </div>
+          <div>
+            <div className="hud-label mb-3">// Результат работы ИИ</div>
+            <p className="leading-relaxed text-[#c4c4cc]">{d.result}</p>
+            <div className="mt-5 grid grid-cols-3 gap-3">
+              {d.stats.map(([v, l]) => (
+                <div key={l} className="rounded-2xl border border-white/[0.08] bg-white/[0.03] p-4 text-center">
+                  <div className="text-neon-gradient font-display text-2xl font-bold sm:text-3xl">{v}</div>
+                  <div className="mt-1 font-mono text-[10px] uppercase tracking-widest text-[#8a8a96]">{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/* ================= dashboard/sandbox ================= */
+function buildReport(text) {
+  const p = text.toLowerCase();
+  const T = /поддерж|клиент|чат/.test(p) ? { t: "Агент клиентской поддержки", g: "−58% нагрузки на операторов", s: ["LLM", "RAG", "Python", "Supabase"] }
+    : /склад|логист|достав/.test(p) ? { t: "Агент-диспетчер логистики", g: "+36% скорость доставки", s: ["AI Agents", "Python", "pgvector", "Next.js"] }
+    : /продаж|лид|crm/.test(p) ? { t: "Агент квалификации лидов", g: "+24% конверсия в сделку", s: ["LLM", "CRM API", "Next.js", "Supabase"] }
+    : { t: "Универсальный ИИ-агент", g: "−40% рутинных операций", s: ["LLM", "RAG", "Python", "Next.js"] };
+  return {
+    ...T, conf: 88 + (text.length % 9),
+    short: text.length > 90 ? text.slice(0, 90) + "…" : text,
+    plan: [["Неделя 1", "Аудит данных и процессов"], ["Недели 2–3", "Прототип агента и RAG-слой"], ["Недели 4–5", "Интеграции и тестирование"], ["Неделя 6", "Запуск и мониторинг"]],
+    risks: [["Качество данных", "Автоочистка и валидация схем"], ["Галлюцинации", "Цитирование источников и guardrails"]]
+  };
+}
+
+const PRESETS = ["Автоматизировать поддержку клиентов в чате", "Оптимизировать логистику склада", "Квалифицировать лиды из CRM"];
+
+function Playground() {
+  const [prompt, setPrompt] = useState("");
+  const [phase, setPhase] = useState("idle");
+  const [logs, setLogs] = useState([]);
+  const [prog, setProg] = useState(0);
+  const [rep, setRep] = useState(null);
+  const timers = useRef([]);
+  useEffect(() => () => timers.current.forEach(clearTimeout), []);
+  const later = (fn, ms) => timers.current.push(setTimeout(fn, ms));
+  const run = () => {
+    const text = prompt.trim();
+    if (!text || phase === "thinking") return;
+    timers.current.forEach(clearTimeout); timers.current = [];
+    setPhase("thinking"); setLogs([]); setRep(null); setProg(0);
+    const short = text.length > 34 ? text.slice(0, 34) + "…" : text;
+    const steps = [`> tokenize("${short}")`, "> embed(intent, dim=3072) ... ok", "> retrieve(knowledge_base, k=8)", "> plan(agent_graph) → 4 nodes", "> simulate(workflow, runs=1000)", "> evaluate(risk, cost, roi)", "> compose(report) ✓"];
+    steps.forEach((s, i) => later(() => setLogs((l) => [...l, s]), i * 280));
+    later(() => setProg(100), 30);
+    later(() => { setRep(buildReport(text)); setPhase("done"); }, 2000);
+  };
+  return (
+    <BentoCard className="mt-4" delay={0.15}>
+      <div className="mb-5 flex items-center justify-between">
+        <div className="hud-label flex items-center gap-3"><span className="h-2 w-2 animate-pulse rounded-full bg-neon-blue shadow-neon-blue" />AI Playground // SIM-4.2</div>
+        <div className="font-mono text-[11px] text-[#8a8a96]">{prompt.length}/400</div>
+      </div>
+      <div className="mb-4 flex flex-wrap gap-2">
+        {PRESETS.map((p) => (
+          <button key={p} type="button" onClick={() => setPrompt(p)} className="rounded-full border border-white/10 px-3 py-1.5 text-xs text-[#8a8a96] transition-colors hover:border-neon-blue/40 hover:text-white">{p}</button>
+        ))}
+      </div>
+      <textarea className="field font-mono text-sm" rows="3" maxLength={400} value={prompt} onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={(e) => (e.ctrlKey || e.metaKey) && e.key === "Enter" && run()}
+        placeholder="Опишите задачу для ИИ-агента… (Ctrl + Enter — запуск)" />
+      <div className="mt-4 flex items-center gap-4">
+        <Magnetic strength={0.2}>
+          <GlowButton onClick={run} disabled={!prompt.trim() || phase === "thinking"} className="disabled:cursor-not-allowed disabled:opacity-40">
+            {phase === "thinking" ? "Симуляция…" : "Запустить симуляцию"}
+          </GlowButton>
+        </Magnetic>
+        {phase === "thinking" && <div className="h-5 w-5 animate-spin rounded-full border-2 border-neon-blue/20 border-t-neon-blue" />}
+      </div>
+
+      {phase !== "idle" && (
+        <div className="mt-6 animate-reveal-up rounded-2xl border border-white/[0.08] bg-black/50 p-5">
+          <div className="mb-3 h-1 overflow-hidden rounded-full bg-white/[0.06]">
+            <div className="h-full bg-gradient-to-r from-neon-violet to-neon-blue shadow-neon-blue transition-all duration-[2000ms] ease-linear" style={{ width: `${prog}%` }} />
+          </div>
+          <div className="font-mono text-xs leading-7 text-neon-blue/90">
+            {logs.map((l, i) => <div key={i}><ScrambleText text={l} /></div>)}
+            {phase === "thinking" && <span className="animate-blink">▍</span>}
+          </div>
+        </div>
+      )}
+
+      {rep && (
+        <div className="mt-5 space-y-5">
+          <div className="animate-reveal-up rounded-2xl border border-neon-blue/30 bg-neon-blue/[0.05] p-6">
+            <div className="hud-label mb-2">// Резюме · уверенность {rep.conf}%</div>
+            <h4 className="font-display text-2xl font-bold">{rep.t}</h4>
+            <p className="mt-2 text-[#c4c4cc]">Задача «{rep.short}» распознана. Прогноз эффекта: <span className="text-neon-blue">{rep.g}</span>.</p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="animate-reveal-up rounded-2xl border border-white/[0.08] p-5" style={{ animationDelay: ".1s" }}>
+              <div className="hud-label mb-4">// План внедрения</div>
+              <ol className="space-y-3">
+                {rep.plan.map(([w, t], i) => (
+                  <li key={w} className="flex gap-3 text-sm"><span className="font-mono text-neon-blue">0{i + 1}</span><span><b className="font-medium">{w}</b> — <span className="text-[#8a8a96]">{t}</span></span></li>
+                ))}
+              </ol>
+            </div>
+            <div className="animate-reveal-up rounded-2xl border border-white/[0.08] p-5" style={{ animationDelay: ".2s" }}>
+              <div className="hud-label mb-4">// Риски и меры</div>
+              <ul className="space-y-3">
+                {rep.risks.map(([r, m]) => <li key={r} className="text-sm"><b className="font-medium">{r}</b><div className="text-[#8a8a96]">{m}</div></li>)}
+              </ul>
+              <div className="hud-label mb-3 mt-5">// Рекомендуемый стек</div>
+              <div className="flex flex-wrap gap-2">{rep.s.map((s) => <span key={s} className="rounded-full border border-neon-blue/30 bg-neon-blue/10 px-3 py-1 font-mono text-xs text-neon-blue">{s}</span>)}</div>
+            </div>
+          </div>
+        </div>
+      )}
+    </BentoCard>
+  );
+}
+
+/* ================= brief ================= */
+const DIRS = [
+  { id: "llm", icon: "◈", title: "Интеграция LLM", sub: "Языковые модели в ваших данных и процессах", base: 18000 },
+  { id: "agent", icon: "⬡", title: "Автономный агент", sub: "Агент, который планирует и действует сам", base: 32000 },
+  { id: "design", icon: "✦", title: "Нейро-дизайн", sub: "Генеративные интерфейсы и бренд-системы", base: 14000 }
+];
+const SCALES = [
+  { id: "startup", icon: "◇", title: "Стартап", sub: "До 50 человек, быстрый MVP", mult: 1 },
+  { id: "mid", icon: "◆", title: "Средний бизнес", sub: "50–500 человек, несколько интеграций", mult: 1.8 },
+  { id: "ent", icon: "✺", title: "Энтерпрайз", sub: "500+ человек, безопасность и аудит", mult: 3.2 }
+];
+const TIERS = [
+  { id: "base", title: "Базовый", sub: "Основной функционал", mult: 1 },
+  { id: "pro", title: "Продвинутый", sub: "+ интеграции и аналитика", mult: 1.35 },
+  { id: "prem", title: "Премиум", sub: "+ поддержка 24/7 и SLA", mult: 1.8 }
+];
+const fmt = (n) => Math.round(n).toLocaleString("ru-RU");
+function calcCost(dir, scale, tier, weeks) {
+  const rush = weeks < 8 ? 1 + (8 - weeks) * 0.06 : weeks > 16 ? 0.95 : 1;
+  return Math.round((dir.base * scale.mult * tier.mult * rush) / 500) * 500;
+}
+
+function Pick({ active, onClick, icon, title, sub }) {
+  const ref = useRef(null);
+  const move = (e) => {
+    const r = ref.current.getBoundingClientRect();
+    ref.current.style.setProperty("--mx", `${e.clientX - r.left}px`);
+    ref.current.style.setProperty("--my", `${e.clientY - r.top}px`);
+  };
+  return (
+    <button ref={ref} type="button" onClick={onClick} onMouseMove={move} aria-pressed={active}
+      className={cn("bento glass p-6 text-left", active && "!border-neon-blue shadow-neon-blue")}>
+      <div className="mb-4 flex items-start justify-between">
+        {icon && <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-neon-blue/30 bg-neon-blue/10 text-xl text-neon-blue">{icon}</div>}
+        <span className={cn("ml-auto flex h-6 w-6 items-center justify-center rounded-full border text-xs transition-all", active ? "border-neon-blue bg-neon-blue text-void" : "border-white/20 text-transparent")}>✓</span>
+      </div>
+      <div className="font-display text-xl font-bold">{title}</div>
+      <div className="mt-1 text-sm text-[#8a8a96]">{sub}</div>
+    </button>
+  );
+}
+
+function HudSuccess({ id, onHome }) {
+  const [draw, setDraw] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setDraw(true), 80); return () => clearTimeout(t); }, []);
+  return (
+    <div className="flex animate-reveal-up flex-col items-center py-10 text-center">
+      <div className="relative flex h-40 w-40 items-center justify-center">
+        <span className="absolute inset-0 animate-ping rounded-full border border-neon-blue/40" />
+        <span className="absolute inset-3 animate-[spin_10s_linear_infinite] rounded-full border border-dashed border-neon-blue/60" />
+        <span className="absolute inset-8 animate-[spin_6s_linear_infinite_reverse] rounded-full border border-neon-violet/60" />
+        <svg viewBox="0 0 52 52" className="h-16 w-16 drop-shadow-[0_0_8px_rgba(0,210,255,.8)]">
+          <path d="M14 27 l8 8 l16 -18" fill="none" stroke="#00D2FF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"
+            strokeDasharray="48" strokeDashoffset={draw ? 0 : 48} style={{ transition: "stroke-dashoffset 1s ease-out .3s" }} />
+        </svg>
+      </div>
+      <div className="text-neon-gradient mt-6 font-display text-3xl font-bold sm:text-4xl"><ScrambleText text="СИГНАЛ ПРИНЯТ" /></div>
+      <div className="hud-label mt-3">ID заявки · {id}</div>
+      <p className="mt-4 max-w-md text-[#8a8a96]">Бриф передан команде AETHER. Мы вернёмся с детальным планом в течение 24 часов.</p>
+      <Magnetic className="mt-8"><GlowButton onClick={onHome}>На главную</GlowButton></Magnetic>
+    </div>
+  );
+}
+
+function Brief({ setTab }) {
+  const [step, setStep] = useState(0);
+  const [dir, setDir] = useState(null);
+  const [scale, setScale] = useState(null);
+  const [tier, setTier] = useState(TIERS[1]);
+  const [weeks, setWeeks] = useState(10);
+  const [phase, setPhase] = useState("form");
+  const [id] = useState(() => "BR-" + Math.floor(1000 + Math.random() * 9000));
+  const timer = useRef(null);
+  useEffect(() => () => clearTimeout(timer.current), []);
+  const labels = ["Направление", "Масштаб", "Сроки", "Расчёт"];
+  const can = step === 0 ? !!dir : step === 1 ? !!scale : true;
+  const cost = dir && scale ? calcCost(dir, scale, tier, weeks) : 0;
+  const submit = (e) => { e.preventDefault(); setPhase("sending"); timer.current = setTimeout(() => setPhase("sent"), 1800); };
+  return (
+    <>
+      <PageHead label="// 05 — Бриф" title="Соберите проект" sub="Четыре шага: направление, масштаб, сроки и автоматический расчёт стоимости." />
+      <BentoCard className="max-w-4xl">
+        {phase === "sent" ? <HudSuccess id={id} onHome={() => setTab("home")} /> : phase === "sending" ? (
+          <div className="flex flex-col items-center py-16 text-center">
+            <div className="h-20 w-20 animate-spin rounded-full border-2 border-neon-blue/20 border-t-neon-blue shadow-neon-blue" />
+            <div className="hud-label mt-6"><ScrambleText text="// ПЕРЕДАЧА ДАННЫХ В ЯДРО AETHER…" /></div>
+          </div>
+        ) : (
+          <>
+            <div className="mb-8 grid grid-cols-4 gap-2">
+              {labels.map((l, i) => (
+                <button key={l} type="button" disabled={i > step} onClick={() => setStep(i)} className="text-left disabled:cursor-default">
+                  <div className={cn("h-1 rounded-full transition-all duration-500", i <= step ? "bg-neon-blue shadow-neon-blue" : "bg-white/10")} />
+                  <div className={cn("mt-2 hidden font-mono text-[10px] uppercase tracking-widest sm:block", i === step ? "text-neon-blue" : "text-[#8a8a96]")}>0{i + 1} {l}</div>
+                </button>
+              ))}
+            </div>
+
+            <div key={step} className="animate-reveal-up">
+              {step === 0 && (
+                <>
+                  <h3 className="mb-5 font-display text-2xl font-bold">Что строим?</h3>
+                  <div className="grid gap-4 sm:grid-cols-3">{DIRS.map((d) => <Pick key={d.id} {...d} active={dir?.id === d.id} onClick={() => setDir(d)} />)}</div>
+                </>
+              )}
+              {step === 1 && (
+                <>
+                  <h3 className="mb-5 font-display text-2xl font-bold">Масштаб проекта</h3>
+                  <div className="grid gap-4 sm:grid-cols-3">{SCALES.map((s) => <Pick key={s.id} {...s} active={scale?.id === s.id} onClick={() => setScale(s)} />)}</div>
+                </>
+              )}
+              {step === 2 && (
+                <>
+                  <h3 className="mb-5 font-display text-2xl font-bold">Сроки и пакет</h3>
+                  <div className="hud-label mb-3 flex justify-between"><span>Срок реализации</span><span>{weeks} нед.</span></div>
+                  <input type="range" min="4" max="24" value={weeks} onChange={(e) => setWeeks(+e.target.value)} aria-label="Срок в неделях" className="w-full accent-[#00D2FF]" />
+                  <p className="mt-2 min-h-[20px] font-mono text-xs text-[#8a8a96]">{weeks < 8 ? "Срочный запуск: наценка за ускорение" : weeks > 16 ? "Спокойный темп: скидка 5%" : "Оптимальный срок"}</p>
+                  <div className="mt-6 grid gap-4 sm:grid-cols-3">{TIERS.map((t) => <Pick key={t.id} {...t} active={tier.id === t.id} onClick={() => setTier(t)} />)}</div>
+                </>
+              )}
+              {step === 3 && (
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="rounded-2xl border border-neon-blue/30 bg-neon-blue/[0.05] p-6">
+                    <div className="hud-label mb-3">// Оценка стоимости</div>
+                    <div className="text-neon-gradient font-display text-5xl font-bold sm:text-6xl"><Count to={cost} prefix="€ " /></div>
+                    <div className="mt-2 font-mono text-xs text-[#8a8a96]">Диапазон: € {fmt(cost * 0.9)} — € {fmt(cost * 1.12)}</div>
+                    <div className="mt-5 flex flex-wrap gap-2">
+                      {[dir.title, scale.title, tier.title, `${weeks} нед.`].map((t) => <span key={t} className="rounded-full border border-neon-blue/30 bg-neon-blue/10 px-3 py-1 font-mono text-xs text-neon-blue">{t}</span>)}
+                    </div>
+                  </div>
+                  <form onSubmit={submit} className="space-y-4">
+                    <input required className="field" placeholder="Ваше имя" />
+                    <input required type="email" className="field" placeholder="Email" />
+                    <textarea rows="3" className="field" placeholder="Комментарий к проекту (необязательно)" />
+                    <GlowButton type="submit" className="w-full">Отправить бриф →</GlowButton>
+                  </form>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-8 flex items-center justify-between">
+              <button type="button" onClick={() => setStep(step - 1)} className={cn("text-sm text-[#8a8a96] transition-colors hover:text-white", step === 0 && "invisible")}>← Назад</button>
+              {step < 3 && (
+                <Magnetic strength={0.2}>
+                  <GlowButton onClick={() => setStep(step + 1)} disabled={!can} className="disabled:cursor-not-allowed disabled:opacity-40">Далее →</GlowButton>
+                </Magnetic>
+              )}
+            </div>
+          </>
+        )}
+      </BentoCard>
+    </>
+  );
+}
+
+/* ================= app ================= */
+function App() {
+  const [tab, setTab] = useState("home");
+  const [ready, setReady] = useState(false);
+  const onReady = useCallback(() => setReady(true), []);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, [tab]);
+  const pages = { services: <Services />, cases: <Cases />, metrics: <Metrics />, dashboard: <><Dashboard /><Playground /></>, brief: <Brief setTab={setTab} /> };
+  return (
+    <>
+      <HudCursor />
+      <div className="noise" />
+      <div className={cn("pointer-events-none fixed inset-0 z-0 transition-opacity duration-1000", !ready ? "opacity-0" : tab === "home" ? "opacity-100" : "opacity-30")}>
+        <HeroSphere onReady={onReady} />
+      </div>
+      {!ready && <div className="fixed inset-0 z-0"><HeroLoader /></div>}
+      <Nav tab={tab} setTab={setTab} />
+      <main key={tab} className="relative z-10">
+        {tab === "home" ? <Hero setTab={setTab} /> : (
+          <section className="mx-auto w-full max-w-[1320px] px-5 pb-32 pt-36 sm:px-8 lg:px-12">{pages[tab]}</section>
+        )}
+      </main>
+      <nav className="glass fixed inset-x-3 z-50 flex justify-around rounded-full px-2 py-2.5 text-[11px] md:hidden" style={{ bottom: "calc(env(safe-area-inset-bottom,0px) + 12px)" }}>
+        {[["home", "Главная"], ...NAV, ["brief", "Бриф"]].map(([id, l]) => (
+          <a key={id} href="#top" onClick={(e) => { e.preventDefault(); setTab(id); }} className={tab === id ? "text-neon-blue" : "text-[#8a8a96]"}>{l}</a>
+        ))}
+      </nav>
+    </>
+  );
+}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
